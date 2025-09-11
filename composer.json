@@ -1,0 +1,33 @@
+{
+    "name": "ashisharya/imagemagic",
+    "description": "Laravel package for creating images with Imagick(shapes,polygons,circles,rectangles)",
+    "autoload": {
+        "psr-4": {
+            "Ashisharya\\Imagemagic\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ashish Arya",
+            "email": "ashish.arya@contevolve.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-imagick": "*"
+    }
+
+        "extra": {
+        "laravel": {
+            "providers": [
+                "Ashisharya\\ImageShapes\\ImageShapesServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "Ashish Arya",
+            "email": "ashish.arya@contevolve.com"
+        }
+    ]
+}
