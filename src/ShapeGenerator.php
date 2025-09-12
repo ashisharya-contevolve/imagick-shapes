@@ -29,7 +29,7 @@ class ShapeGenerator
 
         return $this;
     }
-    public static function drawPolygon(array $points, string $ppath)
+    public static function drawPolygon(array $inpoints, string $ppath)
     {
         $scale   = 20;
         $offsetX = 500;
@@ -46,7 +46,7 @@ class ShapeGenerator
 
         // polygon points
         $polyPoints = [];
-        foreach ($points as $p) {
+        foreach ($inpoints as $p) {
             $px = $p['x'] * $scale + $offsetX;
             $py = $offsetY - $p['y'] * $scale;
             $polyPoints[] = ['x' => $px, 'y' => $py];
