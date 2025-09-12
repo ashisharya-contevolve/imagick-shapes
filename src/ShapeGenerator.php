@@ -28,35 +28,45 @@ class ShapeGenerator
 
         return $this;
     }
-    public static function drawPolygon(array $inpoints, string $ppath)
-    {
-        $scale   = 20;
-        $offsetX = 500;
-        $offsetY = 500;
+    public static function drawPolygon(array $inpoints, string $ppath, int $width = 1000, int $height = 1000, string $bg = 'white', string $fill = 'lightblue', string $stroke = 'black'): string
+{
+    // --- initialize Imagick image
+    $image = new Imagick();
+    $image->newImage($width, $height, new ImagickPixel($bg));
+    $image->setImageFormat('jpg');
 
-        $image = new Imagick();
-        $image->newImage(1000, 1000, new ImagickPixel('white'));
-        $image->setImageFormat('jpg');
+    // --- initialize drawing object
+    $draw = new ImagickDraw();
+    $draw->setFillColor(new ImagickPixel($fill));
+    $draw->setStrokeColor(new ImagickPixel($stroke));
+    $draw->setStrokeWidth(2);
 
-        $draw = new ImagickDraw();
-        $draw->setFillColor(new ImagickPixel('lightblue'));
-        $draw->setStrokeColor('black');
-        $draw->setStrokeWidth(2);
+    // --- calculate polygon points
+    $scale   = 20;
+    $offsetX = $width / 2;
+    $offsetY = $height / 2;
 
-        // polygon points
-        $polyPoints = [];
-        foreach ($inpoints as $p) {
-            $px = $p['x'] * $scale + $offsetX;
-            $py = $offsetY - $p['y'] * $scale;
-            $polyPoints[] = ['x' => $px, 'y' => $py];
-        }
-
-        $draw->polygon($polyPoints);
-        $image->drawImage($draw);
-
-        $image->writeImage($ppath);
-        return $ppath;
+    $polyPoints = [];
+    foreach ($inpoints as $p) {
+        $px = $p['x'] * $scale + $offsetX;
+        $py = $offsetY - $p['y'] * $scale;
+        $polyPoints[] = ['x' => $px, 'y' => $py];
     }
+
+    // --- draw polygon
+    $draw->polygon($polyPoints);
+    $image->drawImage($draw);
+
+    // --- save the image
+    $image->writeImage($ppath);
+
+    // --- clear resources
+    $draw->destroy();
+    $image->destroy();
+
+    return $ppath;
+}
+
     public function drawPolygonWithLengths(
         array $points,
         string $savePath,
