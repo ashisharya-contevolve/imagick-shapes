@@ -34,7 +34,7 @@ class ShapeGenerator
         $offsetX = 500;
         $offsetY = 500;
 
-        $mage = new Imagick();
+        $image = new Imagick();
         $image->newImage(1000, 1000, new ImagickPixel('white'));
         $image->setImageFormat('jpg');
 
