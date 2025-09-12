@@ -1,5 +1,4 @@
 <?php
-
 namespace Ashisharya\Imagemagic;
 
 use Imagick;
@@ -35,7 +34,7 @@ class ShapeGenerator
         $offsetX = 500;
         $offsetY = 500;
 
-        $image = new Imagick();
+        $mage = new Imagick();
         $image->newImage(1000, 1000, new ImagickPixel('white'));
         $image->setImageFormat('jpg');
 
