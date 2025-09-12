@@ -29,7 +29,35 @@ class ShapeGenerator
 
         return $this;
     }
+    public static function drawPolygon(array $points, string $path)
+    {
+        $scale   = 20;
+        $offsetX = 500;
+        $offsetY = 500;
 
+        $image = new Imagick();
+        $image->newImage(1000, 1000, new ImagickPixel('white'));
+        $image->setImageFormat('jpg');
+
+        $draw = new ImagickDraw();
+        $draw->setFillColor(new ImagickPixel('lightblue'));
+        $draw->setStrokeColor('black');
+        $draw->setStrokeWidth(2);
+
+        // polygon points
+        $polyPoints = [];
+        foreach ($points as $p) {
+            $px = $p['x'] * $scale + $offsetX;
+            $py = $offsetY - $p['y'] * $scale;
+            $polyPoints[] = ['x' => $px, 'y' => $py];
+        }
+
+        $draw->polygon($polyPoints);
+        $image->drawImage($draw);
+
+        $image->writeImage($path);
+        return $path;
+    }
     public function drawPolygonWithLengths(
         array $points,
         string $savePath,
