@@ -29,7 +29,7 @@ class ShapeGenerator
 
         return $this;
     }
-    public static function drawPolygon(array $points, string $path)
+    public static function drawPolygon(array $points, string $ppath)
     {
         $scale   = 20;
         $offsetX = 500;
@@ -55,8 +55,8 @@ class ShapeGenerator
         $draw->polygon($polyPoints);
         $image->drawImage($draw);
 
-        $image->writeImage($path);
-        return $path;
+        $image->writeImage($ppath);
+        return $ppath;
     }
     public function drawPolygonWithLengths(
         array $points,
