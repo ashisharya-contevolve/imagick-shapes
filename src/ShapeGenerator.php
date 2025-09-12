@@ -1,6 +1,6 @@
 <?php
 
-namespace ashisharya\ImageShapes;
+namespace Ashisharya\Imagemagic;
 
 use Imagick;
 use ImagickDraw;
