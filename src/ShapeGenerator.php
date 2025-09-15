@@ -1,12 +1,18 @@
 <?php
-namespace Ashisharya\Imagemagic;
-
-use Imagick;
-use ImagickDraw;
-use ImagickPixel;
-
-class ShapeGenerator
-{
+namespace Ashisharya\Imagemagic; 
+use Imagick; 
+use ImagickDraw; 
+use ImagickPixel; 
+class ShapeGenerator { 
+   protected Imagick $image; 
+   protected ImagickDraw $draw; 
+   
+   public function __construct(int $width = 800, int $height = 800, string $bg = 'white') {
+      $this->image = new Imagick(); 
+      $this->image->newImage($width, $height, new ImagickPixel($bg));
+      $this->image->setImageFormat('png'); 
+      $this->draw = new ImagickDraw(); 
+   }
    
 public static function drawPolygon(
     array $inpoints,
@@ -19,15 +25,15 @@ public static function drawPolygon(
 ): string {
     try {
         // --- initialize Imagick image
-        $image = new \Imagick();
-        $image->newImage($width, $height, new \ImagickPixel($bg));
-        $image->setImageFormat('jpg');
+        //$image = new Imagick();
+        $this->image->newImage($width, $height, new \ImagickPixel($bg));
+        $this->image->setImageFormat('jpg');
 
         // --- initialize drawing object
-        $draw = new \ImagickDraw();
-        $draw->setFillColor(new \ImagickPixel($fill));
-        $draw->setStrokeColor(new \ImagickPixel($stroke));
-        $draw->setStrokeWidth(2);
+         $this->draw = new ImagickDraw();
+        $this->draw->setFillColor(new ImagickPixel($fill));
+       $this->draw->setStrokeColor(new ImagickPixel($stroke));
+        $this->draw->setStrokeWidth(2);
 
         // --- calculate polygon points
         $scale   = 20;
@@ -43,16 +49,16 @@ public static function drawPolygon(
 
         // --- draw polygon
         if (!empty($polyPoints)) {
-            $draw->polygon($polyPoints);
-            $image->drawImage($draw);
+            $this->draw->polygon($polyPoints);
+            $this->draw->drawImage($this->draw);
         }
 
         // --- save the image
-        $image->writeImage($ppath);
+        $this->image->writeImage($ppath);
 
         // --- clear resources
-        $draw->destroy();
-        $image->destroy();
+       $this->draw->destroy();
+        $this->image->destroy();
 
         return $ppath;
 
