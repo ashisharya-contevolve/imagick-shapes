@@ -26,7 +26,7 @@ class ShapeGenerator
      public function drawPolygon(
     array $inpoints,
     string $ppath,
-    string $fill = 'lightblue',
+    string $fill = '#dd403c',
     string $stroke = 'black',
     int $scale = 20
 ): string {
