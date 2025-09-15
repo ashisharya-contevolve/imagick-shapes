@@ -1,3 +1,4 @@
+<?php
 namespace Ashisharya\Imagemagic;
 
 use Imagick;
@@ -23,96 +24,97 @@ class ShapeGenerator
      }
 
      public function drawPolygon(
-        array $inpoints,
-        string $ppath,
-        string $fill = 'lightblue',
-        string $stroke = 'black',
-        int $scale = 20
-    ): string {
-        try {
-            // configure polygon drawing
-            $this->draw->setFillColor(new ImagickPixel($fill));
-            $this->draw->setStrokeColor(new ImagickPixel($stroke));
-            $this->draw->setStrokeWidth(2);
+    array $inpoints,
+    string $ppath,
+    string $fill = 'lightblue',
+    string $stroke = 'black',
+    int $scale = 20
+): string {
+    try {
+        $this->draw->setFillColor(new ImagickPixel($fill));
+        $this->draw->setStrokeColor(new ImagickPixel($stroke));
+        $this->draw->setStrokeWidth(2);
 
-            $width  = $this->image->getImageWidth();
-            $height = $this->image->getImageHeight();
-            $offsetX = $width / 2;
-            $offsetY = $height / 2;
+        $width  = $this->image->getImageWidth();
+        $height = $this->image->getImageHeight();
+        $offsetX = $width / 2;
+        $offsetY = $height / 2;
 
-            // calculate polygon points (scaled to canvas)
-            $polyPoints = [];
-            foreach ($inpoints as $p) {
-                $px = $p['x'] * $scale + $offsetX;
-                $py = -$p['y'] * $scale + $offsetY; // ✅ fixed Y-axis
-                $polyPoints[] = ['x' => $px, 'y' => $py];
-            }
-
-            // draw polygon
-            if (!empty($polyPoints)) {
-                $this->draw->polygon($polyPoints);
-                $this->image->drawImage($this->draw);
-            }
-
-            // --- Calculate edge lengths + annotate
-            $numPoints = count($polyPoints);
-            $labelDraw = new ImagickDraw();
-            $labelDraw->setFillColor(new ImagickPixel('black'));
-            $labelDraw->setFontSize(13);
-
-            $dotDraw = new ImagickDraw();
-            $dotDraw->setFillColor(new ImagickPixel('red'));
-
-            for ($i = 0; $i < $numPoints; $i++) {
-                $p1 = $inpoints[$i];
-                $p2 = $inpoints[($i + 1) % $numPoints];
-
-                // length in original units
-                $length = sqrt(
-                    pow($p2['x'] - $p1['x'], 2) +
-                    pow($p2['y'] - $p1['y'], 2)
-                );
-
-                // scaled points for drawing
-                $px1 = $p1['x'] * $scale + $offsetX;
-                $py1 = -$p1['y'] * $scale + $offsetY;
-                $px2 = $p2['x'] * $scale + $offsetX;
-                $py2 = -$p2['y'] * $scale + $offsetY;
-
-                // midpoint
-                $midX = ($px1 + $px2) / 2;
-                $midY = ($py1 + $py2) / 2;
-
-                // angle in degrees
-                $angle = rad2deg(atan2($py2 - $py1, $px2 - $px1));
-
-                // --- label (rotated length)
-                $labelDraw->push(); // save state
-                $labelDraw->translate($midX, $midY);
-                $labelDraw->rotate($angle);
-                $labelDraw->annotation(0, 0, number_format($length, 2));
-                $labelDraw->pop();  // restore state
-
-                // --- vertex marker (red circle)
-                $dotDraw->circle($px1, $py1, $px1 + 3, $py1 + 3);
-            }
-
-            // apply labels and dots
-            $this->image->drawImage($labelDraw);
-            $this->image->drawImage($dotDraw);
-
-            // save
-            $this->image->writeImage($ppath);
-
-            // cleanup
-            $labelDraw->destroy();
-            $dotDraw->destroy();
-
-            return $ppath;
-        } catch (\Exception $e) {
-            throw new \Exception("ShapeGenerator::drawPolygon failed: " . $e->getMessage());
+        // --- Map original points once
+        $polyPoints = [];
+        foreach ($inpoints as $p) {
+            $polyPoints[] = [
+                'x' => $p['x'] * $scale + $offsetX,
+                'y' => -$p['y'] * $scale + $offsetY  // single Y-flip
+            ];
         }
+
+        // draw polygon
+        if (!empty($polyPoints)) {
+            $this->draw->polygon($polyPoints);
+            $this->image->drawImage($this->draw);
+        }
+
+        // --- Calculate edge lengths + annotate
+        $numPoints = count($polyPoints);
+        $labelDraw = new ImagickDraw();
+        $labelDraw->setFillColor(new ImagickPixel('black'));
+        $labelDraw->setFontSize(13);
+
+        $dotDraw = new ImagickDraw();
+        $dotDraw->setFillColor(new ImagickPixel('red'));
+
+        for ($i = 0; $i < $numPoints; $i++) {
+            $p1 = $polyPoints[$i];
+            $p2 = $polyPoints[($i + 1) % $numPoints];
+
+            // length (using *original* coords, not flipped)
+            $orig1 = $inpoints[$i];
+            $orig2 = $inpoints[($i + 1) % $numPoints];
+            $length = sqrt(
+                pow($orig2['x'] - $orig1['x'], 2) +
+                pow($orig2['y'] - $orig1['y'], 2)
+            );
+
+            // midpoint
+            $midX = ($p1['x'] + $p2['x']) / 2;
+            $midY = ($p1['y'] + $p2['y']) / 2;
+
+            // angle for text
+            $angle = rad2deg(atan2($p2['y'] - $p1['y'], $p2['x'] - $p1['x']));
+
+            // normalize angle so text is never upside down
+            if ($angle > 90) {
+                $angle -= 180;
+            } elseif ($angle < -90) {
+                $angle += 180;
+            }
+
+            // --- label (rotated length)
+            $labelDraw->push();
+            $labelDraw->translate($midX, $midY);
+            $labelDraw->rotate($angle);
+            $labelDraw->annotation(0, 0, number_format($length, 2));
+            $labelDraw->pop();
+
+            // vertex marker
+           // $dotDraw->circle($p1['x'], $p1['y'], $p1['x'] + 1, $p1['y'] + 1);
+        }
+
+        $this->image->drawImage($labelDraw);
+        //$this->image->drawImage($dotDraw);
+
+        $this->image->writeImage($ppath);
+
+        $labelDraw->destroy();
+       // $dotDraw->destroy();
+
+        return $ppath;
+    } catch (\Exception $e) {
+        throw new \Exception("ShapeGenerator::drawPolygon failed: " . $e->getMessage());
     }
+}
+
 
 
 
