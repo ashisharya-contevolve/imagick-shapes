@@ -28,17 +28,24 @@ class ShapeGenerator
 
         return $this;
     }
-    public static function drawPolygon(array $inpoints, string $ppath, int $width = 1000, int $height = 1000, string $bg = 'white', string $fill = 'lightblue', string $stroke = 'black'): string
-{
-    // --- initialize Imagick image
-    $image = new Imagick();
-    $image->newImage($width, $height, new ImagickPixel($bg));
+   public static function drawPolygon(
+    array $inpoints,
+    string $ppath,
+    int $width = 1000,
+    int $height = 1000,
+    string $bg = 'white',
+    string $fill = 'lightblue',
+    string $stroke = 'black'
+): string {
+    // --- initialize Imagick image (fully qualified class name)
+    $image = new \Imagick();
+    $image->newImage($width, $height, new \ImagickPixel($bg));
     $image->setImageFormat('jpg');
 
     // --- initialize drawing object
-    $draw = new ImagickDraw();
-    $draw->setFillColor(new ImagickPixel($fill));
-    $draw->setStrokeColor(new ImagickPixel($stroke));
+    $draw = new \ImagickDraw();
+    $draw->setFillColor(new \ImagickPixel($fill));
+    $draw->setStrokeColor(new \ImagickPixel($stroke));
     $draw->setStrokeWidth(2);
 
     // --- calculate polygon points
