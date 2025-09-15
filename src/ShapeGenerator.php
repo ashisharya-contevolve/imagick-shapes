@@ -4,8 +4,7 @@ use Imagick;
 use ImagickDraw; 
 use ImagickPixel; 
 class ShapeGenerator { 
-   protected Imagick $image; 
-   protected ImagickDraw $draw; 
+  
    
    public function __construct(int $width = 800, int $height = 800, string $bg = 'white') {
       $this->image = new Imagick(); 
