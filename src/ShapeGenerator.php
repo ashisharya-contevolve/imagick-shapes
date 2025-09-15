@@ -1,4 +1,6 @@
 <?php
+<?php
+
 namespace Ashisharya\Imagemagic;
 
 use Imagick;
@@ -74,5 +76,3 @@ class ShapeGenerator
         }
     }
 }
-
-
