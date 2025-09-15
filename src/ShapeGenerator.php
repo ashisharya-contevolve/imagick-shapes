@@ -10,40 +10,38 @@ class ShapeGenerator
     protected Imagick $image;
     protected ImagickDraw $draw;
 
-    public function __construct(int $width = 800, int $height = 800, string $bg = 'white')
-    {
+    public function __construct(
+        int $width = 800,
+        int $height = 800,
+        string $bg = 'white',
+        string $format = 'png'
+    ) {
         $this->image = new Imagick();
         $this->image->newImage($width, $height, new ImagickPixel($bg));
-        $this->image->setImageFormat('png');
+        $this->image->setImageFormat($format);
+
         $this->draw = new ImagickDraw();
     }
 
-    public static function drawPolygon(
+    public function drawPolygon(
         array $inpoints,
         string $ppath,
-        int $width = 1000,
-        int $height = 1000,
-        string $bg = 'white',
         string $fill = 'lightblue',
-        string $stroke = 'black'
+        string $stroke = 'black',
+        int $scale = 20
     ): string {
         try {
-            // initialize Imagick image
-            $image = new Imagick();
-            $image->newImage($width, $height, new ImagickPixel($bg));
-            $image->setImageFormat('jpg');
+            // configure drawing
+            $this->draw->setFillColor(new ImagickPixel($fill));
+            $this->draw->setStrokeColor(new ImagickPixel($stroke));
+            $this->draw->setStrokeWidth(2);
 
-            // initialize drawing object
-            $draw = new ImagickDraw();
-            $draw->setFillColor(new ImagickPixel($fill));
-            $draw->setStrokeColor(new ImagickPixel($stroke));
-            $draw->setStrokeWidth(2);
-
-            // calculate polygon points
-            $scale   = 20;
+            $width  = $this->image->getImageWidth();
+            $height = $this->image->getImageHeight();
             $offsetX = $width / 2;
             $offsetY = $height / 2;
 
+            // calculate polygon points
             $polyPoints = [];
             foreach ($inpoints as $p) {
                 $px = $p['x'] * $scale + $offsetX;
@@ -53,20 +51,26 @@ class ShapeGenerator
 
             // draw polygon
             if (!empty($polyPoints)) {
-                $draw->polygon($polyPoints);
-                $image->drawImage($draw);
+                $this->draw->polygon($polyPoints);
+                $this->image->drawImage($this->draw);
             }
 
-            // save the image
-            $image->writeImage($ppath);
-
-            // clear resources
-            $draw->destroy();
-            $image->destroy();
+            // save
+            $this->image->writeImage($ppath);
 
             return $ppath;
         } catch (\Exception $e) {
             throw new \Exception("ShapeGenerator::drawPolygon failed: " . $e->getMessage());
+        }
+    }
+
+    public function __destruct()
+    {
+        if (isset($this->draw)) {
+            $this->draw->destroy();
+        }
+        if (isset($this->image)) {
+            $this->image->destroy();
         }
     }
 }
