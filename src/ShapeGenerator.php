@@ -114,6 +114,86 @@ class ShapeGenerator
         throw new \Exception("ShapeGenerator::drawPolygon failed: " . $e->getMessage());
     }
 }
+    public function combinedPolygon(
+    array $features, // each feature: ['points'=>[], 'fill'=>'', 'stroke'=>'', 'scale'=>20]
+    string $ppath
+): string {
+    try {
+        $width  = $this->image->getImageWidth();
+        $height = $this->image->getImageHeight();
+        $offsetX = $width / 2;
+        $offsetY = $height / 2;
+
+        $labelDraw = new ImagickDraw();
+        $labelDraw->setFillColor(new ImagickPixel('black'));
+        $labelDraw->setFontSize(13);
+
+        foreach ($features as $feature) {
+            $inpoints = $feature['points'];
+            $fill     = $feature['fill']   ?? '#dd403c';
+            $stroke   = $feature['stroke'] ?? 'black';
+            $scale    = $feature['scale']  ?? 20;
+
+            $this->draw->setFillColor(new ImagickPixel($fill));
+            $this->draw->setStrokeColor(new ImagickPixel($stroke));
+            $this->draw->setStrokeWidth(2);
+
+            // --- Map original points once
+            $polyPoints = [];
+            foreach ($inpoints as $p) {
+                $polyPoints[] = [
+                    'x' => $p['x'] * $scale + $offsetX,
+                    'y' => -$p['y'] * $scale + $offsetY
+                ];
+            }
+
+            if (!empty($polyPoints)) {
+                $this->draw->polygon($polyPoints);
+                $this->image->drawImage($this->draw);
+            }
+
+            // --- Add edge lengths for this polygon
+            $numPoints = count($polyPoints);
+            for ($i = 0; $i < $numPoints; $i++) {
+                $p1 = $polyPoints[$i];
+                $p2 = $polyPoints[($i + 1) % $numPoints];
+
+                $orig1 = $inpoints[$i];
+                $orig2 = $inpoints[($i + 1) % $numPoints];
+                $length = sqrt(
+                    pow($orig2['x'] - $orig1['x'], 2) +
+                    pow($orig2['y'] - $orig1['y'], 2)
+                );
+
+                $midX = ($p1['x'] + $p2['x']) / 2;
+                $midY = ($p1['y'] + $p2['y']) / 2;
+
+                $angle = rad2deg(atan2($p2['y'] - $p1['y'], $p2['x'] - $p1['x']));
+                if ($angle > 90) {
+                    $angle -= 180;
+                } elseif ($angle < -90) {
+                    $angle += 180;
+                }
+
+                $labelDraw->push();
+                $labelDraw->translate($midX, $midY);
+                $labelDraw->rotate($angle);
+                $labelDraw->annotation(0, 0, number_format($length, 2));
+                $labelDraw->pop();
+            }
+        }
+
+        $this->image->drawImage($labelDraw);
+        $this->image->writeImage($ppath);
+
+        $labelDraw->destroy();
+
+        return $ppath;
+    } catch (\Exception $e) {
+        throw new \Exception("ShapeGenerator::combinedPolygon failed: " . $e->getMessage());
+    }
+}
+
 
 
 
